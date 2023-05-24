@@ -3,25 +3,22 @@
 A searchable cheatsheet for neovim from within the editor using
 [Telescope](https://github.com/nvim-telescope/telescope.nvim) (fallback to
 displaying in a floating window if Telescope is not installed) with command autofill,
-bundled cheats for the editor, vim plugins, nerd-fonts, etc because hoomans suck at
-remembering stuff:
+bundled cheats for the editor, nvim plugins, nerd-fonts, etc.
 
 ![cheatsheet.nvim gif](https://user-images.githubusercontent.com/23398472/121174386-7a182c00-c877-11eb-979b-5d5e6f8267d8.gif)
 
-<sup>Font: [mononoki](https://madmalik.github.io/mononoki/), Colorscheme: [onedark](https://github.com/joshdick/onedark.vim), [Dotfiles](https://github.com/sudormrfbin/dotfiles2)</sup>
-
 ## Table of Contents
 
-* [Features](#features)
-* [Quickstart](#quickstart)
-* [Installation](#installation)
-* [Usage](#usage)
-    * [Auto Fill Commands From Telescope](#auto-fill-commands-from-telescope)
-* [Bundled Cheatsheets](#bundled-cheatsheets)
-* [Configuration](#configuration)
-* [`cheatsheet.txt` File Format](#cheatsheettxt-file-format)
-* [For Plugin Authors](#for-plugin-authors)
-* [Acknowledgements](#acknowledgements)
+- [Features](#features)
+- [Quickstart](#quickstart)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Auto Fill Commands From Telescope](#auto-fill-commands-from-telescope)
+- [Bundled Cheatsheets](#bundled-cheatsheets)
+- [Configuration](#configuration)
+- [`cheatsheet.txt` File Format](#cheatsheettxt-file-format)
+- [For Plugin Authors](#for-plugin-authors)
+- [Acknowledgements](#acknowledgements)
 
 ## Features
 
@@ -29,8 +26,8 @@ remembering stuff:
 - Simple and portable [cheatsheet format](#cheatsheettxt-file-format) -- simple text file, no lua or vimscript involved
 - [Fill out command line automatically](#auto-fill-commands-from-telescope) (without execution) if selected item in Telescope is a `:command`
 - [Bundled cheatsheets](#bundled-cheatsheets) for:
-    - nerd-fonts, box drawing characters, lua patterns, etc
-    - other plugins like gitsigns, sandwich, easy-align, etc
+  - nerd-fonts, box drawing characters, lua patterns, etc
+  - other plugins like gitsigns, sandwich, easy-align, etc
 - Enable bundled plugin cheatsheets only for plugins you have installed locally
 - Use a `cheatsheet.txt` file from other installed plugins [if found in their directories](#for-plugin-authors)
 - Copy cheats directly from Telescope interface
@@ -38,41 +35,40 @@ remembering stuff:
 ## Quickstart
 
 1. Forget how to do `X`
-2. Hit `<leader>?` to invoke cheatsheet telescope
+2. Hit `<leader>?` or `:Cheatsheet` to invoke cheatsheet telescope
 3. Type in `X` and find forgotten mapping/command
-4. No more ???
-5. Profit !!
 
 ## Installation
 
-Installing Telescope is not required, but *highly* recommended for
+Installing Telescope is not required, but _highly_ recommended for
 using this plugin effectively. `popup.nvim` and `plenary.nvim`
 are used by Telescope.
 
-Using [vim-plug](https://github.com/junegunn/vim-plug)
+Using [vim-plug](https://github.com/junegunn/vim-plug):
 
 ```viml
-Plug 'sudormrfbin/cheatsheet.nvim'
+Plug 'doctorfree/cheatsheet.nvim'
 
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 ```
 
-Using [dein](https://github.com/Shougo/dein.vim)
+Using [dein](https://github.com/Shougo/dein.vim):
 
 ```viml
-call dein#add('sudormrfbin/cheatsheet.nvim')
+call dein#add('doctorfree/cheatsheet.nvim')
 
 call dein#add('nvim-lua/popup.nvim')
 call dein#add('nvim-lua/plenary.nvim')
 call dein#add('nvim-telescope/telescope.nvim')
 ```
-Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+
+Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 
 ```lua
 use {
-  'sudormrfbin/cheatsheet.nvim',
+  'doctorfree/cheatsheet.nvim',
 
   requires = {
     {'nvim-telescope/telescope.nvim'},
@@ -82,14 +78,52 @@ use {
 }
 ```
 
-Subscribe to the [Updates](https://github.com/sudormrfbin/cheatsheet.nvim/issues/1)
-issue thread to be notified about new features.
+Using [lazy.nvim](https://github.com/folke/lazy.nvim):
+
+```lua
+{
+  "doctorfree/cheatsheet.nvim",
+  event = "VeryLazy",
+  dependencies = {
+    { "nvim-telescope/telescope.nvim" },
+    { "nvim-lua/popup.nvim" },
+    { "nvim-lua/plenary.nvim" },
+  },
+  config = function()
+    local ctactions = require("cheatsheet.telescope.actions")
+    require("cheatsheet").setup({
+      bundled_cheetsheets = {
+        enabled = { "default", "lua", "markdown", "regex", "netrw", "unicode" },
+        disabled = { "nerd-fonts" },
+      },
+      bundled_plugin_cheatsheets = {
+        enabled = {
+          "auto-session",
+          "goto-preview",
+          "octo.nvim",
+          "telescope.nvim",
+          "vim-easy-align",
+          "vim-sandwich",
+        },
+        disabled = { "gitsigns" },
+      },
+      include_only_installed_plugins = true,
+      telescope_mappings = {
+        ["<CR>"] = ctactions.select_or_fill_commandline,
+        ["<A-CR>"] = ctactions.select_or_execute,
+        ["<C-Y>"] = ctactions.copy_cheat_value,
+        ["<C-E>"] = ctactions.edit_user_cheatsheet,
+      },
+    })
+  end,
+}
+```
 
 ## Usage
 
 Use the `:Cheatsheet` command which automatically uses Telescope if installed
 or falls back to showing all the cheatsheet files concatenated in a floating
-window. A default mapping `<leader>?` is provided for `:Cheatsheet` 
+window. A default mapping `<leader>?` is provided for `:Cheatsheet`
 (not bound if already in use). By default the `<leader>` key is `\`.
 
 Your cheatsheet file is a simple text file with the name `cheatsheet.txt` found in
@@ -97,7 +131,7 @@ Your cheatsheet file is a simple text file with the name `cheatsheet.txt` found 
 `init.vim`. Use the `:CheatsheetEdit` command to open it in a buffer to edit.
 
 | Telescope mappings | Description                                 |
-| ---                | ---                                         |
+| ------------------ | ------------------------------------------- |
 | `<C-E>`            | Edit user cheatsheet à la `:CheatsheetEdit` |
 | `<C-Y>`            | Yank the cheatcode                          |
 | `Enter`            | Fill in the command line; see below         |
@@ -106,11 +140,11 @@ Your cheatsheet file is a simple text file with the name `cheatsheet.txt` found 
 
 On `Enter`, if the current selection is a command, it will be filled
 in the command line as if you had typed it (it won't be executed yet).
-Note that it will *stop* filling the command line when it encounters a `{`
+Note that it will _stop_ filling the command line when it encounters a `{`
 or `[`. So if the cheat is `:set textwidth={n}`, your commandline will
 have `:set textwidth=` typed into it and the cursor at end.
 
-> Since `cheatsheet.nvim` provides it's own commands,  it is not required to
+> Since `cheatsheet.nvim` provides it's own commands, it is not required to
 > "load" `cheatsheet.nvim` with Telescope which is usually required for plugins
 > using Telescope.
 
@@ -127,18 +161,17 @@ These are the cheatsheets shipped with `cheatsheet.nvim` (PRs welcome!):
 <details>
   <summary>Plugin cheatsheets (click to expand)</summary>
 
+Ideally plugin authors would [supply their own](#for-plugin-authors)
+`cheatsheet.txt`, but since that is not possible for every plugin, they are
+collected in [cheatsheets/plugins](./cheatsheets/plugins).
 
-  Ideally plugin authors would [supply their own](#for-plugin-authors)
-  `cheatsheet.txt`, but since that is not possible for every plugin, they are
-  collected in [cheatsheets/plugins](./cheatsheets/plugins).
-
-  - `auto-session`
-  - `gitsigns.nvim`
-  - `telescope.nvim`
-  - `vim-easy-align`
-  - `vim-sandwich`
-  - `goto-preview`
-  - `octo.nvim`
+- `auto-session`
+- `gitsigns.nvim`
+- `telescope.nvim`
+- `vim-easy-align`
+- `vim-sandwich`
+- `goto-preview`
+- `octo.nvim`
 
 </details>
 
@@ -213,29 +246,29 @@ require("cheatsheet").setup({
 - `#` starts a normal comment, blank lines are ignored.
 - `##` starts a metadata comment for specifying sections and tags.
 
-    `## section-name @tag1 @tag2`: here `section-name` is the name of a plugin
-    or a simple name to group some cheats together. `tag1` and `tag2` are alternative
-    names that you might later remember the section name with. For example the section
-    name can be [`sandwich`](https://github.com/machakann/vim-sandwich) and the tag
-    can be `@surround`.
+  `## section-name @tag1 @tag2`: here `section-name` is the name of a plugin
+  or a simple name to group some cheats together. `tag1` and `tag2` are alternative
+  names that you might later remember the section name with. For example the section
+  name can be [`sandwich`](https://github.com/machakann/vim-sandwich) and the tag
+  can be `@surround`.
 
 - A cheat consists of a description and the key/command/anything separated by `|`
 
-    ```
-    Open cheatsheet | <leader>?
-    Open cheatsheet in floating window | :CheatSheet!
+  ```
+  Open cheatsheet | <leader>?
+  Open cheatsheet in floating window | :CheatSheet!
 
-    View mappings | :map [mapping]
-    Set text width to {n} | :set tw={n}
-    ```
+  View mappings | :map [mapping]
+  Set text width to {n} | :set tw={n}
+  ```
 
-    Like help files, anything in square brackets is `[optional]` and anything
-    in curly brackets is `{required}` arguments. Some commands require a
-    register or mark or number before them, and they are marked with `{r}`,
-    `{m}`, `{n}`, etc. These are not hard and fast rules, simply conventions in
-    the default cheatsheet -- you can of course ignore them when writing your
-    own cheats (though if you want commands to be presented in the command line
-    properly on pressing `Enter`, see the note about it in the Usage section.)
+  Like help files, anything in square brackets is `[optional]` and anything
+  in curly brackets is `{required}` arguments. Some commands require a
+  register or mark or number before them, and they are marked with `{r}`,
+  `{m}`, `{n}`, etc. These are not hard and fast rules, simply conventions in
+  the default cheatsheet -- you can of course ignore them when writing your
+  own cheats (though if you want commands to be presented in the command line
+  properly on pressing `Enter`, see the note about it in the Usage section.)
 
 See this project's [cheatsheet](./cheatsheet.txt) and the
 [default](./cheatsheets/cheatsheet-default.txt) included one for more examples.
@@ -244,14 +277,15 @@ See this project's [cheatsheet](./cheatsheet.txt) and the
 
 You can put a `cheatsheet.txt` file in the root of your repo
 ([like](./cheatsheet.txt) in this repo) and it will be picked up automatically
-and displayed on `:Cheatsheet`.  You don't have to add the file to your repo
-*solely* to support searching it using `cheatsheet.nvim` -- the format is
+and displayed on `:Cheatsheet`. You don't have to add the file to your repo
+_solely_ to support searching it using `cheatsheet.nvim` -- the format is
 simple enough to be opened and read normally and can serve as a great
 quickstart for users.
 
 ## Add cheatsheets at runtime
 
 You can use:
+
 ```
 -- Add a cheat which will be shown alongside cheats loaded from cheatsheet files.
 -- @param description: string
@@ -260,9 +294,11 @@ You can use:
 -- @param tags: array of alternative names for the section
 M.add_cheat = function(description, cheatcode, section, tags)
 ```
+
 to add cheatsheets dynamically at run time.
 
 For example,
+
 ```
 call v:lua.require("cheatsheet").add_cheat("Copy to system clipboard", "<leader>c", "default", [ "my" ])
 ```
@@ -270,6 +306,7 @@ call v:lua.require("cheatsheet").add_cheat("Copy to system clipboard", "<leader>
 ## which-key.nvim integration
 
 You can use
+
 ```
 -- Create a mapping with description that will be added to cheatsheet.nvim and which-key.nvim.
 -- @param map_command: string with a map command (see `:help :map-commands`)
@@ -278,10 +315,12 @@ You can use
 -- @param tags: array of alternative names for the section for cheatsheet.nvim
 M.add_map = function(map_command, description, section, tags)
 ```
-to create mappings with descriptions. The mapping command will be executed right 
+
+to create mappings with descriptions. The mapping command will be executed right
 away and the description will be added to both cheatsheet.nvim and which-key.nvim.
 
 For example, add to your `.vimrc`:
+
 ```
 function AddMap(command, description, ...)
     let section = get(a:, 1, 'default')
@@ -289,13 +328,17 @@ function AddMap(command, description, ...)
     call v:lua.require("cheatsheet").add_map(a:command, a:description, section, tags)
 endfunction
 ```
+
 and then
+
 ```
 call AddMap("vnoremap <leader>c \"+y", "Copy to system clipboard")
 ```
+
 Note that you have to use escapes for quotes and backslashes.
 
 If you don't want to deal with escapes then you can use
+
 ```
 -- Add description that will be added to cheatsheet.nvim and which-key.nvim.
 -- @param mode: one char string for which-key
@@ -305,7 +348,9 @@ If you don't want to deal with escapes then you can use
 -- @param tags: array of alternative names for the section for cheatsheet.nvim
 M.add_map_description = function(mode, lhs, description, section, tags)
 ```
+
 to add only cheat description and use it like this:
+
 ```
 vnoremap <leader>c "+y
 call v:lua.require("cheatsheet").add_map_description("v", "<leader>c", "Copy to system clipboard")
@@ -313,5 +358,8 @@ call v:lua.require("cheatsheet").add_map_description("v", "<leader>c", "Copy to 
 
 ## Acknowledgements
 
-This plugin was inspired by (and borrowed some code and the default cheatsheat)
-from [cheat40](https://github.com/lifepillar/vim-cheat40).
+This plugin was inspired by (and borrowed some code and the default cheatsheet)
+from [cheat40](https://github.com/lifepillar/vim-cheat40). It is an enhanced
+fork of the
+[original cheatsheet plugin](https://github.com/sudormrfbin/cheatsheet.nvim)
+which has fallen out of maintenance.
