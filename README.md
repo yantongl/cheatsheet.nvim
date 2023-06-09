@@ -154,6 +154,7 @@ These are the cheatsheets shipped with `cheatsheet.nvim` (PRs welcome!):
 
 - [`default`](./cheatsheets/cheatsheet-default.txt) (vim builtin commands and mappings)
 - [`nerd-fonts`](https://www.nerdfonts.com/) (useful for ricing paired with `<C-Y>` for copying the symbol)
+  - Note: this repository includes support for Nerd Fonts version 3, adding over 5000 icons
 - `unicode` (currently only has box drawing characters)
 - `regex` (PCRE)
 - `markdown` (not fully featured yet)
@@ -337,7 +338,7 @@ call AddMap("vnoremap <leader>c \"+y", "Copy to system clipboard")
 
 Note that you have to use escapes for quotes and backslashes.
 
-If you don't want to deal with escapes then you can use
+If you don't want to deal with escapes then you can use:
 
 ```
 -- Add description that will be added to cheatsheet.nvim and which-key.nvim.
@@ -349,7 +350,7 @@ If you don't want to deal with escapes then you can use
 M.add_map_description = function(mode, lhs, description, section, tags)
 ```
 
-to add only cheat description and use it like this:
+To add only cheat description and use it like this:
 
 ```
 vnoremap <leader>c "+y
