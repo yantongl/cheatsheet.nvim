@@ -38,14 +38,19 @@ M.pick_cheat = function(telescope_opts, opts)
                     -- * config.layout_config was changed to move width and height to individual layout_strategy configs
                     -- https://github.com/nvim-telescope/telescope.nvim/pull/1039/files#diff-4936325bfc521d7cffc09fe0156becd4a4ba2ed169431c94bd63669fe0cc1a2aL79-L80
                     local cols = vim.o.columns
-                    local width = config.width
-                        or config.layout_config.width
-                        or config.layout_config[config.layout_strategy].width
-                        or cols
+                    local width = cols
+                    if config.width and type(config.width) == 'number' then
+                        width = config.width
+                    elseif config.layout_config and config.layout_config.width and type(config.layout_config.width) == 'number' then
+                        width = config.layout_config.width
+                    elseif config.layout_config and config.layout_config[config.layout_strategy] and config.layout_config[config.layout_strategy].width and type(config.layout_config[config.layout_strategy].width) == 'number' then
+                        width = config.layout_config[config.layout_strategy].width
+                    end
+
                     local tel_win_width
                     -- width = 80 -> column width, width = 0.7 -> ratio
                     if width > 1 then
-                        tel_win_width = width
+                        tel_win_width = math.floor(width * 0.6)
                     else
                         tel_win_width = math.floor(cols * width)
                     end
