@@ -27,9 +27,9 @@ M.get_cheatsheet_files = function(opts)
         plugin_include = true
     end
 
-    local cheatsheet_name_pat = '.+/cheatsheets/cheatsheet%-(.+)%.txt'
+    local cheatsheet_name_pat = '.+[\\/]cheatsheets[\\/]cheatsheet%-(.+)%.txt'
     local cheatsheet_plugin_name_pat =
-        '.+/cheatsheets/plugins/cheatsheet%-(.+)%.txt'
+        '.+[\\/]cheatsheets[\\/]plugins[\\/]cheatsheet%-(.+)%.txt'
 
     local bundled_plugins = {}
     filter_insert(
