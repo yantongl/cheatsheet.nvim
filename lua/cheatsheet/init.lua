@@ -6,7 +6,30 @@ local has_path, path = pcall(require, "plenary.path")
 
 local M = {}
 
-M.setup = function(opts) config.setup(opts) end
+M.setup = function(opts)
+     config.setup(opts)
+     vim.api.nvim_create_user_command(
+        "CheatsheetOnFiles",
+        function(inputOpts) M.show_cheatsheet_on_files(inputOpts.fargs) end,
+        {
+            nargs = '+',
+            complete = function() return M.get_cheatsheet_files() end
+        }
+     )
+end
+
+M.show_cheatsheet_on_files = function(input_files)
+    assert(has_path, "plenary.nvim not installed")
+    local files = {}
+    for _, fp in pairs(input_files) do
+        if path:new(fp):exists() then
+            table.insert(files, fp)
+        else
+            print("cheatsheet warning: given file doesn't exit - " .. fp)
+        end
+    end
+    M.show_cheatsheet({ specific_files = files })
+end
 
 -- Get `cheatsheet.txt` files from any directory in runtimepath
 -- Inlcudes bundled cheatsheets if configured to do so.
@@ -14,6 +37,11 @@ M.setup = function(opts) config.setup(opts) end
 -- @return array of filepaths
 M.get_cheatsheet_files = function(opts)
     opts = opts or config.options
+
+    -- specific_files allow us to search in chosen files
+    if opts.specific_files ~= nil then
+        return opts.specific_files
+    end
 
     -- see include argument of utils.filter_insert
     local plugin_include = {}
@@ -82,14 +110,14 @@ local function parse_map_command(command)
     -- for example, nmap -> n, inoremap -> i
     mode = parsed.cmd:sub(1,1)
     -- note: which-key currently doesn't support nvo mode.
-    -- hence I use 'n' instead of 'm'. this also means that for 
+    -- hence I use 'n' instead of 'm'. this also means that for
     -- 'noremap' command I'm already good with 'n'.
     -- see: https://github.com/folke/which-key.nvim/issues/267
     mode = mode == "m" and "n" or mode
     for _, arg in ipairs(parsed.args) do
         -- if not special argument. see `:h :map-arguments`
-        if  arg ~= "<buffer>" and 
-            arg ~= "<nowait>" and 
+        if  arg ~= "<buffer>" and
+            arg ~= "<nowait>" and
             arg ~= "<silent>" and
             arg ~= "<script>" and
             arg ~= "<expr>" and
