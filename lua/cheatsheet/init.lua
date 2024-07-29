@@ -8,17 +8,60 @@ local M = {}
 
 M.setup = function(opts)
      config.setup(opts)
+     -- command CheatsheetOnFiles
      vim.api.nvim_create_user_command(
         "CheatsheetOnFiles",
-        function(inputOpts) M.show_cheatsheet_on_files(inputOpts.fargs) end,
+        function(inputOpts) 
+            M.show_cheatsheet_on_files(inputOpts.fargs, inputOpts.bang) 
+        end,
         {
             nargs = '+',
+            bang=true,
             complete = function() return M.get_cheatsheet_files() end
         }
      )
+     -- command CheatsheetEdit
+     vim.api.nvim_create_user_command(
+        "CheatsheetEdit",
+        function(inputOpts)
+            if #inputOpts.fargs > 0 then
+                for _, f in pairs(inputOpts.fargs) do
+                    vim.api.nvim_command(":edit " .. f)
+                end
+            else
+                require'cheatsheet.utils'.edit_user_cheatsheet()
+            end
+        end,
+        {
+            nargs = '?',
+            complete = function() 
+                local all_cheatsheets = M.get_cheatsheet_files() 
+                local user_cheatsheets = {}
+                local config_dir = vim.fn.stdpath('config')
+                for _, cs in pairs(all_cheatsheets) do
+                    if vim.startswith(cs, config_dir) then
+                        table.insert(user_cheatsheets, cs)
+                    end
+                end
+                return user_cheatsheets
+            end
+        }
+     )
+     -- command Cheatsheet
+     vim.api.nvim_create_user_command(
+        "Cheatsheet",
+        function(inputOps)
+            if inputOps.bang then
+                require('cheatsheet').show_cheatsheet_float()
+            else
+                require('cheatsheet').show_cheatsheet()
+            end
+        end,
+        { nargs=0, bang=true }
+     )
 end
 
-M.show_cheatsheet_on_files = function(input_files)
+M.show_cheatsheet_on_files = function(input_files, bang)
     assert(has_path, "plenary.nvim not installed")
     local files = {}
     for _, fp in pairs(input_files) do
@@ -28,7 +71,11 @@ M.show_cheatsheet_on_files = function(input_files)
             print("cheatsheet warning: given file doesn't exit - " .. fp)
         end
     end
-    M.show_cheatsheet({ specific_files = files })
+    if bang then
+        M.show_cheatsheet_float({ specific_files = files })
+    else
+        M.show_cheatsheet({ specific_files = files })
+    end
 end
 
 -- Get `cheatsheet.txt` files from any directory in runtimepath
